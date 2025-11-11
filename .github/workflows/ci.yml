@@ -1,1 +1,71 @@
+name: Sitecore Build & Package
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare artifact staging directory
+        shell: pwsh
+        run: |
+          $artifact = Join-Path $Env:GITHUB_WORKSPACE 'artifactstaging'
+          if (Test-Path $artifact) { Remove-Item $artifact -Recurse -Force }
+          New-Item -ItemType Directory -Path $artifact | Out-Null
+          echo "ARTIFACT_DIR=$artifact" >> $Env:GITHUB_ENV
+          Write-Host "Artifact staging directory: $artifact"
+
+      - name: Copy XPScaled ARM Templates
+        shell: pwsh
+        run: |
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'Sitecore104Vanila'
+          $target = $Env:ARTIFACT_DIR
+          if (Test-Path $source) {
+            Write-Host "Copying from $source to $target"
+            Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
+          } else {
+            Write-Host "Source not found: $source"
+          }
+
+      - name: Copy PS Scripts
+        shell: pwsh
+        run: |
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'Sitecore104Vanila\Scripts'
+          $target = Join-Path $Env:ARTIFACT_DIR 'Scripts'
+          if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
+          if (Test-Path $source) {
+            Write-Host "Copying from $source to $target"
+            Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
+          } else {
+            Write-Host "Source not found: $source"
+          }
+
+      - name: Copy Pre deploy scripts
+        shell: pwsh
+        run: |
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'PreDeployment'
+          $target = Join-Path $Env:ARTIFACT_DIR 'PreDeployment'
+          if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
+          if (Test-Path $source) {
+            Write-Host "Copying from $source to $target"
+            Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
+          } else {
+            Write-Host "Source not found: $source"
+          }
+
+      - name: Upload artifact:drop
+        uses: actions/upload-artifact@v4
+        with:
+          name: drop
+          path: ${{ env.ARTIFACT_DIR }}
