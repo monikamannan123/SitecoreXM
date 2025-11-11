@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "deploymentId": {
+      "value": ""
+    },
+    "location": {
+      "value": ""
+    },    
+    "sitecoreAdminPassword": {
+      "value": "Sitecore@2025"
+    },
+    "licenseXml": {
+      "value": ""
+    },
+    "repAuthenticationApiKey": {
+      "value": "edd2e726-9610-48d6-b066-f5b6289hc01a"
+    },
+    "sqlServerLogin": {
+      "value": "sqladminlogin"
+    },
+    "sqlServerPassword": {
+      "value": "Sitecore@2025"
+    },
+    "siMsDeployPackageUrl": {
+      "value": ""
+    },
+    "cmMsDeployPackageUrl": {
+      "value": ""
+    },
+    "cdMsDeployPackageUrl": {
+      "value": ""
+    },
+    "prcMsDeployPackageUrl": {
+      "value": ""
+    },
+    "xcRefDataMsDeployPackageUrl": {
+      "value": ""
+    },
+    "xcCollectMsDeployPackageUrl": {
+      "value": ""
+    },
+    "xcSearchMsDeployPackageUrl": {
+      "value": ""
+    },
+    "cortexProcessingMsDeployPackageUrl": {
+      "value": ""
+    },
+    "cortexReportingMsDeployPackageUrl": {
+      "value": ""
+    },
+    "maOpsMsDeployPackageUrl": {
+      "value": ""
+    },
+    "maRepMsDeployPackageUrl": {
+      "value": ""
+    },
+    "authCertificateBlob": {
+      "value": ""
+    },
+    "authCertificatePassword": {
+      "value": "Sitecore@2025"
+    }
+  }
+}
