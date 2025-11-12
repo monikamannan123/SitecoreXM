@@ -1,58 +1,32 @@
-name: Azure Connection and Create resources
+name: Azure Connection Test
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  # Primary deployment values (adjust as needed)
-  RESOURCE_GROUP: my-sitecore-rg
-  LOCATION: eastus
-  STORAGE_ACCOUNT_NAME: mystoresa12345    # must be globally unique; change as needed
-  CONTAINER_NAME: sitecore-artifacts
-  SAS_EXPIRY: '2025-12-01T00:00:00Z'      # change to an appropriate expiry
-
-  # KeyVault / foundation values (converted from your Azure DevOps variables)
-  SHARED_RESOURCEGROUP: 'rg-dcxdev104-scxm'
-  FOUNDATION_LOCATION: 'eastus2'
-  SHARED_KEYVAULTNAME: 'kv-dcxdev104-scxm'
-  BUILD_ARTIFACT_ROOT_DIRECTORY: '_Sitecore104-PreDeployment-CI-import'
-  CERTIFICATE_FILENAME: 'dev104XM.coned.com_SAN.pfx'
-  CERTIFICATE_NAME: 'dev104XM-coned-com'
-  FOUNDATION_RESOURCEGROUP: 'sitecore104-xp-scaled-phani'
-  FOUNDATION_STORAGEACCOUNTNAME: 'sitecore104xpscaled'
-
 jobs:
-  deploy:
+  azure-setup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    # Step 1: Checkout your repo
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      # Conditional Azure login: use service principal creds if AZURE_CREDENTIALS secret exists,
-      # otherwise fall back to OIDC (recommended).
-      - name: Login to Azure (Service Principal)
-        if: ${{ secrets.AZURE_CREDENTIALS != '' }}
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    # Step 2: Log in to Azure using Service Principal
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+       
 
-      - name: Login to Azure (OIDC)
-        if: ${{ secrets.AZURE_CREDENTIALS == '' }}
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    # Step 3: Create Resource Group
+    - name: Create Resource Group
+      run: |
+        az group create \
+          --name sitecorexmmonika \
+          --location eastus
 
-      #### Create primary RG + Storage + Upload artifacts ####
-      - name: Create resource group
-        run: |
-          az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
-
+    # Step 4: Validate connection
+    - name: Validate Resource Group
+      run: |
+        az group show --name sitecorexmmonika
