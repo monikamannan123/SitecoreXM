@@ -1,5 +1,4 @@
 name: Sitecore Build & Package
-
 on:
   push:
     branches: [ main ]
