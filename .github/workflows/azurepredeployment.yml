@@ -44,17 +44,18 @@ jobs:
             --auth-mode login
 
         # Step: Create Azure Key Vault (equivalent to AzurePowerShell@5 task)
-      - name: Create Azure Key Vault
-        shell: pwsh
-        run: |
-          $KeyVaultName = "kv-github-scxm"
-          $ResourceGroupName = "sitecorexmgithub"
-          $Location = "eastus2"
-          Write-Host "Creating Key Vault $KeyVaultName in $ResourceGroupName..."
-          az keyvault create `
-            --name $KeyVaultName `
-            --resource-group $ResourceGroupName `
-            --location $Location
+        # commenting as azure key vault created from here
+      #- name: Create Azure Key Vault
+        #shell: pwsh
+        #run: |
+          #$KeyVaultName = "kv-github-scxm"
+          #$ResourceGroupName = "sitecorexmgithub"
+          #$Location = "eastus2"
+          #Write-Host "Creating Key Vault $KeyVaultName in $ResourceGroupName..."
+         # az keyvault create `
+            #--name $KeyVaultName `
+            #--resource-group $ResourceGroupName `
+            #--location $Location
       - name: Run AddSecretsToKeyVault.ps1
         uses: azure/powershell@v1
         with:
