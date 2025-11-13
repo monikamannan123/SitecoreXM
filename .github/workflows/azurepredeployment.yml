@@ -53,3 +53,20 @@ jobs:
             --name $KeyVaultName `
             --resource-group $ResourceGroupName `
             --location $Location  
+      - name: Run AddSecretsToKeyVault.ps1
+        uses: azure/powershell@v1
+        with:
+          inlineScript: |
+            $ResourceGroupName = "sitecorexmgithub"
+            $KeyVaultName = "kv-github-scxm"
+            $sitecoreAdminPassword = "b"
+            $sqlServerPassword = "b"
+            $authCertificatePassword = ""
+            . "${{ github.workspace }}/_Sitecore104-PreDeployment-CI-import/drop/PD_AddSecretsToKeyVault.ps1" `
+              -ResourceGroupName $ResourceGroupName `
+              -KeyVaultName $KeyVaultName `
+              -sitecoreAdminPassword $sitecoreAdminPassword `
+              -sqlServerPassword $sqlServerPassword `
+              -authCertificatePassword $authCertificatePassword
+             azPSVersion: "latest"     
+            
