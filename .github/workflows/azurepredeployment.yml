@@ -64,11 +64,13 @@ jobs:
             $sitecoreAdminPassword = "Sitecore@2025"
             $sqlServerPassword = "Sitecore@2025"
             $authCertificatePassword = "Sitecore@2025"
-            . "${{ github.workspace }}/_Sitecore104-PreDeployment-CI-import/drop/PD_AddSecretsToKeyVault.ps1" `
+            . "/home/runner/work/SitecoreXM/SitecoreXM/_Sitecore104-PreDeployment-CI-import/drop/PD_AddSecretsToKeyVault.ps1" `
               -ResourceGroupName $ResourceGroupName `
               -KeyVaultName $KeyVaultName `
               -sitecoreAdminPassword $sitecoreAdminPassword `
               -sqlServerPassword $sqlServerPassword `
               -authCertificatePassword $authCertificatePassword
-             azPSVersion: "latest"     
+          azPSVersion: latest
+          errorActionPreference: stop
+          failOnStandardError: false
             
