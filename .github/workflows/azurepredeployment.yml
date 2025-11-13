@@ -65,7 +65,7 @@ jobs:
             $sitecoreAdminPassword = "Sitecore@2025"
             $sqlServerPassword = "Sitecore@2025"
             $authCertificatePassword = "Sitecore@2025"
-            . "/home/runner/work/SitecoreXM/SitecoreXM/_Sitecore104-PreDeployment-CI-import/drop/PD_AddSecretsToKeyVault.ps1" `
+            . "PreDeployment/PD_AddSecretsToKeyVault.ps1 `
               -ResourceGroupName $ResourceGroupName `
               -KeyVaultName $KeyVaultName `
               -sitecoreAdminPassword $sitecoreAdminPassword `
