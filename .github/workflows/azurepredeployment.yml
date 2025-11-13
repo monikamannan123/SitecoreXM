@@ -36,11 +36,13 @@ jobs:
             --location eastus \
             --sku Standard_LRS \
             --kind StorageV2
-      - name: Create storage container
+      # Create Storage Container in the Storage Account
+      - name: Create Storage Container
         run: |
           az storage container create \
             --name containergithub \
-            --account-name sitecorexmgithub
+            --account-name storageacctxmgithub \
+            --auth-mode login
 
         # Step: Create Azure Key Vault (equivalent to AzurePowerShell@5 task)
       - name: Create Azure Key Vault
