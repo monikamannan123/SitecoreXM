@@ -51,9 +51,10 @@ jobs:
           $ResourceGroupName = "sitecorexmgithub"
           $Location = "eastus2"
           Write-Host "Creating Key Vault $KeyVaultName in $ResourceGroupName..."
+          az keyvault create `
             --name $KeyVaultName `
             --resource-group $ResourceGroupName `
-            --location $Location  
+            --location $Location
       - name: Run AddSecretsToKeyVault.ps1
         uses: azure/powershell@v1
         with:
