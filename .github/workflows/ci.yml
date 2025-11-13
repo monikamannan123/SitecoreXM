@@ -25,7 +25,7 @@ jobs:
       - name: Copy XPScaled ARM Templates
         shell: pwsh
         run: |
-          $source = Join-Path $Env:GITHUB_WORKSPACE 'Sitecore104Vanila'
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila'
           $target = $Env:ARTIFACT_DIR
           if (Test-Path $source) {
             Write-Host "Copying from $source to $target"
