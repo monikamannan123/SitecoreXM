@@ -8,8 +8,8 @@ env:
     RESOURCE_GROUP: sitecorexmgithub
     KEYVAULT_NAME: kv-github-scxm
     CERT_NAME: gitcert101  # name to store in Key Vault
-    CERT_PATH: ./certs/mycert.pfx   # path in repo to your certificate file
-    CERT_PASSWORD: ./PreDeployment/gitcert1041.pfx    
+    CERT_PATH: ./PreDeployment/gitcert1041.pfx    # path in repo to your certificate file
+    CERT_PASSWORD: check@123    
 jobs:
   deploy:
     runs-on: ubuntu-latest
