@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+env:     
+    RESOURCE_GROUP: sitecorexmgithub
+    KEYVAULT_NAME: kv-github-scxm
+    CERT_NAME: gitcert101  # name to store in Key Vault
+    CERT_PATH: ./certs/mycert.pfx   # path in repo to your certificate file
+    CERT_PASSWORD: ./PreDeployment/gitcert1041.pfx    
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -74,4 +80,13 @@ jobs:
           azPSVersion: latest
           errorActionPreference: stop
           failOnStandardError: false    
-     
+        # Upload certificate to Key Vault
+      - name: Upload Certificate
+        shell: bash
+        run: |
+          echo "Uploading certificate $CERT_PATH to Key Vault $KEYVAULT_NAME..."
+          az keyvault certificate import \
+            --vault-name $KEYVAULT_NAME \
+            --name $CERT_NAME \
+            --file $CERT_PATH \
+            --password $CERT_PASSWORD
