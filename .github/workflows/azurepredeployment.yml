@@ -121,20 +121,25 @@ jobs:
         with:
           azPSVersion: "latest"
           inlineScript: |
-            $storageAccountName = "storageacctxmgithub"   # must match the one you created
-            $resourceGroupName  = "sitecorexmgithub"
-            $context = (Get-AzStorageAccount `
-              -ResourceGroupName  $resourceGroupName`
-              -Name $storageAccountName).Context
-            
+            $resourceGroupName  = "${{ env.RESOURCE_GROUP }}"
+            $storageAccountName = "${{ env.STORAGE_ACCOUNT }}"
+      
+            # This must match the account you created
+            $account = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName
+            if (-not $account) {
+              throw "Storage account $storageAccountName not found in $resourceGroupName"
+            }
+      
+            $context = $account.Context
+      
             $sastoken = New-AzStorageAccountSASToken `
               -Context $context `
               -Service Blob `
               -ResourceType Object `
               -Permission rwd `
               -ExpiryTime (Get-Date).AddHours(12)
+      
             Write-Output "::set-output name=token::$sastoken"
-            Write-Host "Generated SAS Token: $sastoken"
       - name: Validate SAS token
         run: |
           az storage blob list \
