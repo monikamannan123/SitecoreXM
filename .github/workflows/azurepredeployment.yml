@@ -23,20 +23,26 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          
-      - name: Set Azure Subscription Context
+      #set context    
+      - name: Azure Login (PowerShell)
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
           inlineScript: |
+            $tenantId        = "${{ secrets.AZURE_TENANT_ID }}"
+            $appId           = "${{ secrets.AZURE_CLIENT_ID }}"
+            $appSecret       = "${{ secrets.AZURE_CLIENT_SECRET }}"
+            $subscriptionId  = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      
+            $secureSecret = ConvertTo-SecureString $appSecret -AsPlainText -Force
+            $psCred       = New-Object System.Management.Automation.PSCredential($appId, $secureSecret)
+      
             Connect-AzAccount -ServicePrincipal `
-              -Tenant ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }} `
-              -ApplicationId ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} `
-              -Credential (New-Object System.Management.Automation.PSCredential(
-                ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }},
-                (ConvertTo-SecureString ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} -AsPlainText -Force)
-              ))
-            Set-AzContext -SubscriptionId ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+              -Tenant $tenantId `
+              -ApplicationId $appId `
+              -Credential $psCred
+      
+            Set-AzContext -SubscriptionId $subscriptionId
 
            
        # Step 4: Validate Resource Group exists
