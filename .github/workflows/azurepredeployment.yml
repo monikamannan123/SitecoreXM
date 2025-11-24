@@ -111,7 +111,11 @@ jobs:
             --name $CERT_NAME \
             --file $CERT_PATH \
             --password $CERT_PASSWORD
-    
+      - name: Validate Storage Account
+        run: |
+          az storage account show \
+          --name ${{ env.STORAGEACCOUNT }} \
+          --resource-group ${{ env.RESOURCE_GROUP }}
       - name: Generate SAS token
         uses: azure/powershell@v1
         with:
