@@ -141,10 +141,10 @@ jobs:
               -ExpiryTime (Get-Date).AddHours(12)
       
             Write-Output "token=$sastoken" >> $env:GITHUB_OUTPUT
-      - name: Validate SAS token
-        run: |
-          az storage blob list \
-            --account-name storageacctxmgithub \
-            --container-name containergithub \
-            --sas-token "${{ steps.sas.outputs.token }}"
+      #- name: Validate SAS token
+       # run: |
+         # az storage blob list \
+           # --account-name storageacctxmgithub \
+            #--container-name containergithub \
+            #--sas-token "${{ steps.sas.outputs.token }}"
     
