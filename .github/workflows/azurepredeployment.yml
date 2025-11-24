@@ -122,7 +122,7 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             $resourceGroupName  = "${{ env.RESOURCE_GROUP }}"
-            $storageAccountName = "${{ env.STORAGE_ACCOUNT }}"
+            $storageAccountName = "${{ env.STORAGEACCOUNT }}"
       
             # This must match the account you created
             $account = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName
