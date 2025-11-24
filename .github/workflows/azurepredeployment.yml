@@ -23,6 +23,22 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - name: Set Azure Subscription Context
+        uses: azure/powershell@v1
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            Connect-AzAccount -ServicePrincipal `
+              -Tenant ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }} `
+              -ApplicationId ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }} `
+              -Credential (New-Object System.Management.Automation.PSCredential(
+                ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }},
+                (ConvertTo-SecureString ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }} -AsPlainText -Force)
+              ))
+            Set-AzContext -SubscriptionId ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+
+           
        # Step 4: Validate Resource Group exists
       - name: Validate Resource Group
         run: |
