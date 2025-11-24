@@ -101,7 +101,7 @@ jobs:
             $resourceGroupName  = "sitecorexmgithub"
             $context = (Get-AzStorageAccount `
               -ResourceGroupName  $resourceGroupName`
-              -Name $storageAccountName
+              -Name $storageAccountName).Context
             
             $sastoken = New-AzStorageAccountSASToken `
               -Context $context `
@@ -109,7 +109,7 @@ jobs:
               -ResourceType Object `
               -Permission rwd `
               -ExpiryTime (Get-Date).AddHours(12)
-            
+            Write-Output "::set-output name=token::$sastoken"
             Write-Host "Generated SAS Token: $sastoken"
       - name: Validate SAS token
         run: |
