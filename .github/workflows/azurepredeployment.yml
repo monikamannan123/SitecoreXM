@@ -117,6 +117,7 @@ jobs:
           --name ${{ env.STORAGEACCOUNT }} \
           --resource-group ${{ env.RESOURCE_GROUP }}
       - name: Generate SAS token
+        id: sas
         uses: azure/powershell@v1
         with:
           azPSVersion: "latest"
@@ -139,11 +140,11 @@ jobs:
               -Permission rwd `
               -ExpiryTime (Get-Date).AddHours(12)
       
-            Write-Output "::set-output name=token::$sastoken"
+            Write-Output "token=$sastoken" >> $env:GITHUB_OUTPUT
       - name: Validate SAS token
         run: |
           az storage blob list \
             --account-name storageacctxmgithub \
             --container-name containergithub \
-            --sas-token "$sastoken"
+            --sas-token "${{ steps.sas.outputs.token }}"
     
