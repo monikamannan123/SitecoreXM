@@ -50,3 +50,11 @@ jobs:
         run: |
           echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
           echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
+      #this step dynamically builds the command to run your PowerShell script with Azure storage parameters, logs it, and executes it.
+      - name: Run PowerShell Script
+        shell: pwsh
+        run: |
+            $scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
+            $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
+            Write-Host "Running script: $scriptPath $args"
+            & $scriptPath $args    
