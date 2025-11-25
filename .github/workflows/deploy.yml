@@ -6,7 +6,10 @@ on:
 jobs:
   upload:
     runs-on: windows-latest
-
+    env:
+      STORAGE_RG: ${{ secrets.RESOURCEGROUP_NAME }}
+      STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+      STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -50,11 +53,23 @@ jobs:
         run: |
           echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
           echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
-      #this step dynamically builds the command to run your PowerShell script with Azure storage parameters, logs it, and executes it.
+     # Step 1: Download Azure Toolkit from blob
       - name: Run PowerShell Script
         shell: pwsh
         run: |
-            $scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
-            $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
-            Write-Host "Running script: $scriptPath $args"
-            & $scriptPath $args    
+          $scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
+          $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_ACCOUNT_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
+          Write-Host "Running script: $scriptPath $args"
+          & $scriptPath $args
+
+      # Step 2: Extract toolkit zip files
+      - name: Extract files
+        shell: pwsh
+        run: |
+          $archivePath = "${{ github.workspace }}\azuretoolkit\*.zip"
+          $destination = "${{ github.workspace }}\blob"
+          Write-Host "Extracting $archivePath to $destination"
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+          Get-ChildItem $archivePath | ForEach-Object {
+            Expand-Archive -Path $_.FullName -DestinationPath $destination -Force
+          }
