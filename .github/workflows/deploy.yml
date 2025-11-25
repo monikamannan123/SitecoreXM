@@ -13,6 +13,8 @@ jobs:
       STORAGE_RG: ${{ secrets.RESOURCEGROUP_NAME }}
       STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
       STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
+      KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
+      CERT_PASSWORD_SECRET: check@123
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -105,4 +107,41 @@ jobs:
                 }
               }
             }
-          }  
+          } 
+
+      - name: Download Certificate from KeyVault
+        shell: pwsh
+        run: |
+          $vaultName   = "$env:KEYVAULT_NAME"
+          $secretName  = "$env:CERT_PASSWORD_SECRET"
+
+          # Get certificate password from Key Vault secret
+          $secret      = Get-AzKeyVaultSecret -VaultName $vaultName -Name $secretName
+          $bstr        = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
+          $plaintext   = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+          $certPassword = $plaintext
+
+          # Get certificate from Key Vault
+          $cert        = Get-AzKeyVaultCertificate -VaultName $vaultName -Name $env:CERT_NAME
+          $secret      = Get-AzKeyVaultSecret -VaultName $vaultName -Name $cert.Name
+
+          $secretValueText = ''
+          $ssPtr           = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
+          try {
+              $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
+          } finally {
+              [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
+          }
+
+          # Convert secret to certificate
+          $secretByte   = [Convert]::FromBase64String($secretValueText)
+          $x509Cert     = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($secretByte, "", "Exportable,PersistKeySet")
+          $type         = [System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx
+          $pfxFileByte  = $x509Cert.Export($type, $certPassword)
+
+          # Write to file
+          $exportPath = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\ExportedCert.pfx"
+          New-Item -ItemType Directory -Force -Path (Split-Path $exportPath) | Out-Null
+          [System.IO.File]::WriteAllBytes($exportPath, $pfxFileByte)
+
+          Write-Host "Certificate exported to: $exportPath"
