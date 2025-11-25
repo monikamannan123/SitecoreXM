@@ -1,133 +1,52 @@
-
-name: Sitecore1041PaaS Deployment
+name: Sitecore 1041 XM Installation 
 
 on:
   workflow_dispatch:
 
-env:
-  buildArtifactRootDirectory: Sitecore10.4.1-XMScaled-CI
-  dropFolderName: drop
-  sclicenseblobname: license.xml
-  keyVaultName: kv-github-scxm
-  certificatePasswordSecretName: check@123
-  certificateName: dmcoe104
-  sqlServerLogin: sqladminlogin
-  solrURL: https://localhost:8983/solr
-
 jobs:
-  deploy:
+  upload:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Azure Blob File Copy
-        uses: azure/CLI@v1
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          azcliversion: 2.30.0
-          inlineScript: |
-            az storage blob upload-batch \
-              --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
-              --destination ${{ secrets.STORAGE_CONTAINER }} \
-              --source "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop" \
-              --pattern "*"
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Download Azure Toolkit
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            ./Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1 `
-              -ResourceGroupName ${{ secrets.RESOURCEGROUP_NAME }} `
-              -StorageAccountName ${{ secrets.STORAGE_ACCOUNT_NAME }} `
-              -ContainerName ${{ secrets.STORAGE_CONTAINER }} `
-              -Prefix "azuretoolkit" `
-              -Destination "${{ github.workspace }}"
-
-      - name: Extract files
+      # Upload files to Blob
+      - name: Upload Sitecore packages
         run: |
-          Expand-Archive -Path "${{ github.workspace }}\azuretoolkit\*.zip" -DestinationPath "${{ github.workspace }}\blob"
+          az storage blob upload-batch `
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
+            --destination ${{ secrets.STORAGE_CONTAINER }} `
+            --source "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop" `
+            --auth-mode key `
+            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
+            --destination-path "xmscaled/arm"
 
-      - name: Download Sitecore License File
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $downloadPath = "${{ github.workspace }}\${{ env.buildArtifactRootDirectory }}\${{ env.dropFolderName }}\"
-            $storageAcc   = Get-AzStorageAccount -ResourceGroupName ${{ secrets.STORAGE_RG }} -Name ${{ secrets.STORAGE_ACCOUNT_NAME }}
-            $ctx          = $storageAcc.Context
-            $containers   = Get-AzStorageContainer -Name ${{ secrets.STORAGE_CONTAINER }} -Context $ctx
-            $licenseFile  = "${{ env.sclicenseblobname }}"
-            foreach($container in $containers) {
-              $blobContents = Get-AzStorageBlob -Container ${{ secrets.STORAGE_CONTAINER }} -Context $ctx
-              foreach($blobContent in $blobContents) {
-                if ($blobContent.Name -eq $licenseFile) {
-                  Get-AzStorageBlobContent -Container ${{ secrets.STORAGE_CONTAINER }} -Context $ctx -Blob $blobContent.Name -Destination $downloadPath -Force
-                }
-              }
-            }
+      # Generate SAS token and Blob URI
+      - name: Generate SAS Token
+        id: sas
+        run: |
+          $expiry = (Get-Date).AddHours(10).ToString("yyyy-MM-ddTHH:mm:ssZ")
+          $sas = az storage account generate-sas `
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
+            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
+            --services b `
+            --resource-types sco `
+            --permissions rwlac `
+            --expiry $expiry `
+            --https-only `
+            -o tsv
+          echo "sasToken=$sas" >> $env:GITHUB_OUTPUT
+          $blobUri = "https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}"
+          echo "blobUri=$blobUri" >> $env:GITHUB_OUTPUT
 
-      - name: Download Certificate from KeyVault
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $vaultName  = "${{ env.keyVaultName }}"
-            $secretName = "${{ env.certificatePasswordSecretName }}"
-            $secret     = Get-AzKeyVaultSecret -VaultName $vaultName -Name $secretName
-            $bstr       = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
-            $plaintext  = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
-            $certPassword = $plaintext
-            $cert       = Get-AzKeyVaultCertificate -VaultName $vaultName -Name ${{ env.certificateName }}
-            $secret     = Get-AzKeyVaultSecret -VaultName $vaultName -Name $cert.Name
-            $ssPtr      = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
-            $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
-            $secretByte = [Convert]::FromBase64String($secretValueText)
-            $x509Cert   = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($secretByte, "", "Exportable,PersistKeySet")
-            $type       = [System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx
-            $pfxFileByte = $x509Cert.Export($type, $certPassword)
-            $ExportedCert = "${{ github.workspace }}\${{ env.buildArtifactRootDirectory }}\${{ env.dropFolderName }}\ExportedCert.pfx"
-            [System.IO.File]::WriteAllBytes($ExportedCert, $pfxFileByte)
-
-      - name: Install Sitecore1041PaaS
-        uses: azure/powershell@v1
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            $DeploymentID   = "${{ secrets.DEPLOYMENT_ID }}"
-            $dropFolderPath = "${{ github.workspace }}\${{ env.buildArtifactRootDirectory }}\${{ env.dropFolderName }}"
-            $LicenseFile    = "$dropFolderPath\${{ env.sclicenseblobname }}"
-            $Location       = "${{ secrets.PAAS_LOCATION }}"
-            $sqlServerLogin = "${{ env.sqlServerLogin }}"
-            $ExportedCert   = "$dropFolderPath\ExportedCert.pfx"
-            $ParamFile      = "$dropFolderPath\azuredeploy.parameters.json"
-            $TemplateUrl    = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f "${{ secrets.STORAGE_URI }}", "${{ secrets.STORAGE_TOKEN }}")
-            $TemplateLinkBase = "${{ secrets.STORAGE_URI }}xmscaled/arm/"
-            $TemplateLinkAccessToken = "?${{ secrets.STORAGE_TOKEN }}"
-            $solrConnectionString = "${{ env.solrURL }}"
-            $siMsDeployPackageUrl = ("{0}xmscaled/Sitecore.IdentityServer.8.0.16.scwdp.zip?{1}" -f "${{ secrets.STORAGE_URI }}", "${{ secrets.STORAGE_TOKEN }}")
-            $cdMsDeployPackageUrl = ("{0}xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?{1}" -f "${{ secrets.STORAGE_URI }}", "${{ secrets.STORAGE_TOKEN }}")
-            $cmMsDeployPackageUrl = ("{0}xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?{1}" -f "${{ secrets.STORAGE_URI }}", "${{ secrets.STORAGE_TOKEN }}")
-            $Parameters = @{
-              "location" = $Location
-              "deploymentId" = $DeploymentID
-              "templateLinkBase" = $TemplateLinkBase
-              "templateLinkAccessToken" = $TemplateLinkAccessToken
-              "solrConnectionString" = $solrConnectionString
-              "sqlServerLogin" = $sqlServerLogin
-              "siMsDeployPackageUrl" = $siMsDeployPackageUrl
-              "applicationInsightsLocation" = $Location
-              "cdMsDeployPackageUrl" = $cdMsDeployPackageUrl
-              "cmMsDeployPackageUrl" = $cmMsDeployPackageUrl
-              "authCertificateBlob" = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($ExportedCert))
-            }
-            Import-Module "${{ github.workspace }}\blob\tools\Sitecore.Cloud.Cmdlets.psm1" -Verbose
-            Start-SitecoreAzureDeployment `
-              -Location $Location `
-              -Name "${{ secrets.SITECORE_RG }}" `
-              -ArmTemplateUrl $TemplateUrl `
-              -ArmParametersPath $ParamFile `
-              -LicenseXmlPath $LicenseFile `
-              -SetKeyValue $Parameters `
-              -Verbose
+      # Example usage of SAS token in later steps
+      - name: Show SAS Outputs
+        run: |
+          echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
+          echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
