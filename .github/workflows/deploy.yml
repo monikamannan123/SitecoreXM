@@ -7,6 +7,9 @@ jobs:
   upload:
     runs-on: windows-latest
     env:
+      BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
+      DROP_FOLDER: drop
+      LICENSE_BLOB_NAME: license.xml
       STORAGE_RG: ${{ secrets.RESOURCEGROUP_NAME }}
       STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
       STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
@@ -18,7 +21,11 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+      - name: Install Az PowerShell modules
+        shell: pwsh
+        run: |
+          Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
+          Import-Module Az
       # Upload files to Blob
       - name: Upload Sitecore packages
         run: |
@@ -73,3 +80,29 @@ jobs:
           Get-ChildItem $archivePath | ForEach-Object {
             Expand-Archive -Path $_.FullName -DestinationPath $destination -Force
           }
+      # Download Sitecore License File    
+      - name: Download Sitecore License File
+        shell: pwsh
+        run: |
+          $downloadPath = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\"
+          $storageAcc   = Get-AzStorageAccount -ResourceGroupName $env:STORAGE_RG -Name $env:STORAGE_ACCOUNT_NAME
+          $ctx          = $storageAcc.Context
+          $containers   = Get-AzStorageContainer -Name $env:STORAGE_CONTAINER -Context $ctx
+          $licenseFile  = $env:LICENSE_BLOB_NAME
+
+          foreach($container in $containers) {
+            Write-Host "CONTAINER: " $container.Name
+            $blobContents = Get-AzStorageBlob -Container $env:STORAGE_CONTAINER -Context $ctx
+
+            foreach($blobContent in $blobContents) {
+              if ($blobContent.Name -eq $licenseFile) {
+                Write-Host "BLOB CONTENT: " $blobContent.Name
+                if (Test-Path -Path $downloadPath) {
+                  Get-AzStorageBlobContent -Container $env:STORAGE_CONTAINER -Context $ctx -Blob $blobContent.Name -Destination $downloadPath -Force
+                }
+                if (Test-Path -Path ($downloadPath + $licenseFile)) {
+                  Write-Host "License file downloaded: $downloadPath$licenseFile"
+                }
+              }
+            }
+          }  
