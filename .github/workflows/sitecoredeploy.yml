@@ -251,7 +251,7 @@ jobs:
           # ---------------------------
           $DeploymentID     = $env:DeploymentID
           $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $LicenseFile      =  Join-Path $dropFolderPath "scripts\license.xml"
+          $LicenseFile      =  "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\license.xml"
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
