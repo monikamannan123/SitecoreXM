@@ -1,9 +1,9 @@
 name: Sitecore Build & Package
 on:
-  #workflow_dispatch:   # manual trigger
-   push:
-     branches:
-      - main
+  workflow_dispatch:   # manual trigger
+   #push:
+     #branches:
+     # - main
  
 permissions:
   contents: read
