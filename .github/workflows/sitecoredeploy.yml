@@ -80,16 +80,55 @@ jobs:
         run: |
           echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
           echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
-     # Step 1: Download Azure Toolkit from blob
+          # Step 1: Download Azure Toolkit from blob (inline script)
+          
       - name: Download Azure Toolkit from blob
         shell: pwsh
         run: |
+          param(
+            [string]$ResourceGroupName = "${{ env.STORAGE_RG }}",
+            [string]$StorageAccountName = "${{ env.STORAGE_ACCOUNT_NAME }}",
+            [string]$ContainerName = "${{ env.STORAGE_CONTAINER }}",
+            [string]$Prefix = "azuretoolkit",
+            [string]$Destination = "${{ github.workspace }}"
+          )
+
+          Write-Host "Downloading blobs with prefix '$Prefix' from container '$ContainerName' in storage account '$StorageAccountName'"
+      
+          # Get storage account context
+          $storageAcc = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName
+          $ctx = $storageAcc.Context
+      
+          # List blobs with the given prefix
+          $blobs = Get-AzStorageBlob -Container $ContainerName -Context $ctx | Where-Object { $_.Name -like "$Prefix*" }
+      
+          if (-not $blobs) {
+            Write-Error "No blobs found with prefix $Prefix in container $ContainerName"
+            exit 1
+          }
+
+          # Ensure destination exists
+          if (-not (Test-Path $Destination)) {
+            New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+          }
+
+          foreach ($blob in $blobs) {
+            Write-Host "Downloading blob: $($blob.Name)"
+            Get-AzStorageBlobContent -Container $ContainerName -Context $ctx -Blob $blob.Name -Destination $Destination -Force
+          }
+
+          Write-Host "Download complete. Files saved to $Destination"
+
+     # Step 1: Download Azure Toolkit from blob
+      #- name: Download Azure Toolkit from blob
+        #shell: pwsh
+       # run: |
           
-          $scriptPath = Join-Path "${{ github.workspace }}/drop/Scripts" "DownloadCOntainerFolders.ps1"
+          #$scriptPath = Join-Path "${{ github.workspace }}/drop/Scripts" "DownloadCOntainerFolders.ps1"
           #$scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
-          $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_ACCOUNT_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
-          Write-Host "Running script: $scriptPath $args"
-          & $scriptPath $args
+          #$args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_ACCOUNT_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
+         # Write-Host "Running script: $scriptPath $args"
+          #& $scriptPath $args
 
       # Step 2: Extract toolkit zip files
       - name: Extract files
