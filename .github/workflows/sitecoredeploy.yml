@@ -81,7 +81,7 @@ jobs:
           echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
           echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
      # Step 1: Download Azure Toolkit from blob
-      - name: Run PowerShell Script
+      - name: Download Azure Toolkit from blob
         shell: pwsh
         run: |
           
