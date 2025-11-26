@@ -234,8 +234,9 @@ jobs:
           # VARIABLES
           # ---------------------------
           $DeploymentID     = $env:DeploymentID
-          $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $LicenseFile      =  "${{ github.workspace }}/artifactstaging/drop/Scripts/license.xml"
+          #$dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
+          $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "drop"
+          $LicenseFile      = Join-Path $dropFolderPath "Scripts\license.xml"
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
