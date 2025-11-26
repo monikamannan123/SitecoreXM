@@ -1,4 +1,4 @@
-name: Sitecore 1041 XM Installation
+name: Sitecore 1041 XM provison
 
 on:
   workflow_call:
