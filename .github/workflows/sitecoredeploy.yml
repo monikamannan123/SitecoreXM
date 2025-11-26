@@ -242,8 +242,7 @@ jobs:
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
-          $ParamFile        = Join-Path $dropFolderPath "azuredeploy.parameters.json"
-
+          $ParamFile        = Join-Path "${{ github.workspace }}/drop" "azuredeploy.parameters.json"
           Get-Content -Path $ParamFile
 
           # ---------------------------
