@@ -62,9 +62,14 @@ jobs:
           } else {
             Write-Host "Source not found: $source"
           }
-
+      - uses: actions/checkout@v4
       - name: Upload artifact:drop
         uses: actions/upload-artifact@v4
         with:
           name: drop
           path: ${{ env.ARTIFACT_DIR }}
+      #- name: Upload artifact:drop
+       # uses: actions/upload-artifact@v4
+        #with:
+        #  name: drop
+        #  path: ${{ env.ARTIFACT_DIR }}
