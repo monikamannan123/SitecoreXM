@@ -69,11 +69,11 @@ jobs:
           Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
           Import-Module Az
 
-      - name: Download artifact
+      - name: Download artifact:drop
         uses: actions/download-artifact@v4
         with:
           name: drop
-          path: ${{ github.workspace }}/artifactstaging
+          path: ${{ github.workspace }}/drop
 
       - name: Upload Sitecore packages to Blob
         run: |
