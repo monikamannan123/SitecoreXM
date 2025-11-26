@@ -265,7 +265,7 @@ jobs:
           # PACKAGE URLS
           # ---------------------------
           $solrConnectionString    = $env:solrURL
-          $siMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.IdentityServer.8.0.16.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
+          $siMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
           $cdMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
           $cmMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
 
