@@ -84,7 +84,9 @@ jobs:
       - name: Run PowerShell Script
         shell: pwsh
         run: |
-          $scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
+          
+          $scriptPath = Join-Path "${{ github.workspace }}/drop/Scripts" "DownloadCOntainerFolders.ps1"
+          #$scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
           $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_ACCOUNT_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
           Write-Host "Running script: $scriptPath $args"
           & $scriptPath $args
