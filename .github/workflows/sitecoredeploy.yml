@@ -1,28 +1,18 @@
 name: Sitecore 1041 XM provison
 
 on:
-  workflow_call:
-    inputs:
-      artifact-name:
-        required: true
-        type: string
-    secrets:
-      AZURE_CREDENTIALS:
-        required: true
-      RESOURCEGROUP_NAME:
-        required: true
-      STORAGE_ACCOUNT_NAME:
-        required: true
-      STORAGE_CONTAINER:
-        required: true
-      STORAGE_ACCOUNT_KEY:
-        required: true
-      KEYVAULT_NAME:
-        required: true
-      CERT_NAME:
-        required: true
+ push:
+     branches:
+      - main
+    
 
 jobs:
+  build:
+    uses: ./.github/workflows/newCI.yml   # call reusable workflow
+    with:
+      artifact-name: drop
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
   upload:
     runs-on: windows-latest
     env:
@@ -34,7 +24,7 @@ jobs:
       STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
       KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
       CERT_PASSWORD_SECRET: check@123
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -43,7 +33,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+  
       - name: Install Az PowerShell modules
         shell: pwsh
         run: |
