@@ -87,6 +87,10 @@ jobs:
         with:
            name: drop
            path: drop
+      - uses: actions/upload-artifact@v4
+        with:
+           name: drop
+           path: Sitecore10.4.1-XMScaled-CI/drop/scripts/license.xml    
       - name: Upload Sitecore packages to Blob
         run: |
           az storage blob upload-batch `
@@ -247,7 +251,7 @@ jobs:
           # ---------------------------
           $DeploymentID     = $env:DeploymentID
           $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $LicenseFile      =  Join-Path $dropFolderPath "script\license.xml"
+          $LicenseFile      =  Join-Path $dropFolderPath "scripts\license.xml"
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
