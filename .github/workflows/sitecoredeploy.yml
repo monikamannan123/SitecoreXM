@@ -9,10 +9,7 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/newCI.yml   # call reusable workflow
-    with:
-      artifact-name: drop
-    secrets:
-      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    
   upload:
     runs-on: windows-latest
     env:
