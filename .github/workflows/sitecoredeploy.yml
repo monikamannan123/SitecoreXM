@@ -1,0 +1,72 @@
+name: Sitecore 1041 XM Installation
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        required: true
+        type: string
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+      RESOURCEGROUP_NAME:
+        required: true
+      STORAGE_ACCOUNT_NAME:
+        required: true
+      STORAGE_CONTAINER:
+        required: true
+      STORAGE_ACCOUNT_KEY:
+        required: true
+      KEYVAULT_NAME:
+        required: true
+      CERT_NAME:
+        required: true
+
+jobs:
+  upload:
+    runs-on: windows-latest
+    env:
+      BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
+      DROP_FOLDER: drop
+      LICENSE_BLOB_NAME: license.xml
+      STORAGE_RG: ${{ secrets.RESOURCEGROUP_NAME }}
+      STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+      STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
+      KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
+      CERT_PASSWORD_SECRET: check@123
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Az PowerShell modules
+        shell: pwsh
+        run: |
+          Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
+          Import-Module Az
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: drop
+
+      - name: Debug artifact contents
+        run: dir drop
+
+      - name: Upload Sitecore packages to Blob
+        run: |
+          az storage blob upload-batch `
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
+            --destination ${{ secrets.STORAGE_CONTAINER }} `
+            --source "${{ github.workspace }}\drop" `
+            --auth-mode key `
+            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
+            --destination-path "xmscaled/arm"
+
+      # … keep the rest of your steps (Generate SAS, Run PowerShell Script, Extract files, Download License, Download Certificate)
