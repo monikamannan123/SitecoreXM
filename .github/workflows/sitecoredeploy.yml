@@ -72,8 +72,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
-          path: drop
+          name: drop
+          path: ${{ github.workspace }}/artifactstaging
 
       - name: Debug artifact contents
         run: dir drop
@@ -251,7 +251,7 @@ jobs:
           # ---------------------------
           $DeploymentID     = $env:DeploymentID
           $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $LicenseFile      =  "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\drop\drop\Scripts\license.xml"
+          $LicenseFile      =  "${{ github.workspace }}/artifactstaging/drop/Scripts/license.xml"
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
