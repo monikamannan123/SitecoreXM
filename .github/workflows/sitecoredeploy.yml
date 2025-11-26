@@ -233,15 +233,15 @@ jobs:
           # ---------------------------
           # VARIABLES
           # ---------------------------
-          $DeploymentID     = $env:DeploymentID
+          $DeploymentID      = $env:DeploymentID
           #$dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "drop"
-          $LicenseFile      = Join-Path $dropFolderPath "Scripts\license.xml"
-          $Location         = $env:PaaSLocation
-          $sqlServerLogin   = $env:sqlServerLogin
+          $dropFolderPath    = Join-Path $env:GITHUB_WORKSPACE "drop"
+          $LicenseFile       = Join-Path $dropFolderPath "Scripts\license.xml"
+          $Location          = $env:PaaSLocation
+          $sqlServerLogin    = $env:sqlServerLogin
           #$ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
           $ExportedCert      = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\ExportedCert.pfx"
-          $ParamFile        = Join-Path "${{ github.workspace }}/drop" "azuredeploy.parameters.json"
+          $ParamFile         = Join-Path $dropFolderPath "azuredeploy.parameters.json"
           if (-not (Test-Path $LicenseFile)) {
             Write-Error "Sitecore license file not found at $LicenseFile"
             exit 1
