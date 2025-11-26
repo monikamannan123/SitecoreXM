@@ -22,7 +22,7 @@ jobs:
       STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
       STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
       KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
-      CERT_PASSWORD_SECRET: check@123
+      CERT_PASSWORD_SECRET: certPassword123
     
     steps:
       - name: Checkout repository
