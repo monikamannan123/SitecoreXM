@@ -23,6 +23,7 @@ jobs:
       STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
       KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
       CERT_PASSWORD_SECRET: certPassword123
+      CERT_NAME: gitcert101
     
     steps:
       - name: Checkout repository
