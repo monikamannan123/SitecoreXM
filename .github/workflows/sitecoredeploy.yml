@@ -20,10 +20,9 @@ jobs:
       sclicenseblobname: 'license.xml'
       sqlServerLogin: 'sqladminlogin'
       solrURL: 'https://localhost:8983/solr'
-      #PaaSLocation: ${{ secrets.PAAS_LOCATION }}
-      #DeploymentID: ${{ secrets.DEPLOYMENT_ID }}
-      #Sitecore_RG: ${{ secrets.SITECORE_RG }}
-     # storageaccount_uri: ${{ secrets.STORAGEACCOUNT_URI }}
+      PaaSLocation: eastus2
+      DeploymentID: dpsitecore1041
+      Sitecore_RG: ${{ secrets.RESOURCEGROUP_NAME }}
       storageaccount_token: ${{ secrets.STORAGEACCOUNT_TOKEN }}
       BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
       DROP_FOLDER: drop
@@ -44,6 +43,13 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set storage account URL in env
+        run: |
+          echo "STORAGE_ACCOUNT_URI=https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net" >> $GITHUB_ENV
+
+      - name: Show URL
+        run: |
+          echo "Storage URL: $STORAGE_ACCOUNT_URI"
       - name: Connect Az PowerShell
         shell: pwsh
         run: |
@@ -243,24 +249,24 @@ jobs:
           # ---------------------------
           # TEMPLATE URLS
           # ---------------------------
-          $TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
-          $TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:storageaccount_uri)
+          $TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
+          $TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:STORAGE_ACCOUNT_URI)
           $TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
 
           # ---------------------------
           # PACKAGE URLS
           # ---------------------------
           $solrConnectionString    = $env:solrURL
-          $siMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.IdentityServer.8.0.16.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
-          $cdMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
-          $cmMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
+          $siMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.IdentityServer.8.0.16.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
+          $cdMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
+          $cmMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
 
           Write-Host "Location: $Location"
           Write-Host "ParamFile: $ParamFile"
           Write-Host "TemplateUrl: $TemplateUrl"
           Write-Host "TemplateLinkBase: $TemplateLinkBase"
           Write-Host "TemplateLinkAccessToken: $TemplateLinkAccessToken"
-          Write-Host "Storage URI: $env:storageaccount_uri"
+          Write-Host "Storage URI: $env:STORAGE_ACCOUNT_URI"
 
           # ---------------------------
           # PARAMETER OVERRIDES
