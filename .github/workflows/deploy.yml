@@ -1,8 +1,10 @@
 name: Sitecore 1041 XM Installation 
 
 on:
-  workflow_dispatch:
-
+  #workflow_dispatch:
+    push:
+     branches:
+      - main
 jobs:
   upload:
     runs-on: windows-latest
