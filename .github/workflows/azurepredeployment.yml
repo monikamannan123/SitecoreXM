@@ -1,9 +1,10 @@
 name: Azure Connection Test
 
 on:
-  push:
-    branches:
-      - main
+ workflow_dispatch:
+  #push:
+    #branches:
+     # - main
 env:     
     RESOURCE_GROUP: sitecorexmgithub
     KEYVAULT_NAME: kv-github-scxm
