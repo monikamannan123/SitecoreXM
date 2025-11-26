@@ -1,8 +1,10 @@
 name: Sitecore Build & Package
 
 on:
-  workflow_call:   # allows other workflows to call this one
-
+  #workflow_call:   # allows other workflows to call this one
+ push:
+     branches:
+      - main
 permissions:
   contents: read
   actions: write
