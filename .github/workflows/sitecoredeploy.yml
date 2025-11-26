@@ -45,7 +45,8 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Set storage account URL in env
         run: |
-          echo "STORAGE_ACCOUNT_URI=https://${STORAGE_ACCOUNT_NAME}.blob.core.windows.net" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_URI=https://$STORAGE_ACCOUNT_NAME.blob.core.windows.net/$STORAGE_CONTAINER" >> $GITHUB_ENV
+
 
       - name: Show URL
         run: |
@@ -251,9 +252,14 @@ jobs:
           # ---------------------------
           # TEMPLATE URLS
           # ---------------------------
-          $TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
-          $TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:STORAGE_ACCOUNT_URI)
-          $TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
+          #$TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
+          #$TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:STORAGE_ACCOUNT_URI)
+          #$TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
+           $TemplateUrl             = ("{0}/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI.TrimEnd('/'), $env:storageaccount_token)
+           $TemplateLinkBase        = ("{0}/arm/" -f $env:STORAGE_ACCOUNT_URI.TrimEnd('/'))
+           $TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
+           Write-Host "TemplateUrl: $TemplateUrl"
+
 
           # ---------------------------
           # PACKAGE URLS
