@@ -251,11 +251,15 @@ jobs:
           # ---------------------------
           $DeploymentID     = $env:DeploymentID
           $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
-          $LicenseFile      =  "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\license.xml"
+          $LicenseFile      =  "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\script\license.xml"
           $Location         = $env:PaaSLocation
           $sqlServerLogin   = $env:sqlServerLogin
           $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
           $ParamFile        = Join-Path "${{ github.workspace }}/drop" "azuredeploy.parameters.json"
+          if (-not (Test-Path $LicenseFile)) {
+            Write-Error "Sitecore license file not found at $LicenseFile"
+            exit 1
+          }
           Get-Content -Path $ParamFile
 
           # ---------------------------
