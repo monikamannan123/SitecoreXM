@@ -57,5 +57,110 @@ jobs:
             --auth-mode key `
             --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
             --destination-path "xmscaled/arm"
+       # Generate SAS token and Blob URI
+      - name: Generate SAS Token
+        id: sas
+        run: |
+          $expiry = (Get-Date).AddHours(10).ToString("yyyy-MM-ddTHH:mm:ssZ")
+          $sas = az storage account generate-sas `
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
+            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
+            --services b `
+            --resource-types sco `
+            --permissions rwlac `
+            --expiry $expiry `
+            --https-only `
+            -o tsv
+          echo "sasToken=$sas" >> $env:GITHUB_OUTPUT
+          $blobUri = "https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}"
+          echo "blobUri=$blobUri" >> $env:GITHUB_OUTPUT
 
+      # Example usage of SAS token in later steps
+      - name: Show SAS Outputs
+        run: |
+          echo "Blob URI: ${{ steps.sas.outputs.blobUri }}"
+          echo "SAS Token: ${{ steps.sas.outputs.sasToken }}"
+     # Step 1: Download Azure Toolkit from blob
+      - name: Run PowerShell Script
+        shell: pwsh
+        run: |
+          $scriptPath = "${{ github.workspace }}/Sitecore10.4.1-XMScaled-CI/drop/DownloadCOntainerFolders.ps1"
+          $args = "-ResourceGroupName $env:STORAGE_RG -StorageAccountName $env:STORAGE_ACCOUNT_NAME -ContainerName $env:STORAGE_CONTAINER -Prefix azuretoolkit -Destination ${{ github.workspace }}"
+          Write-Host "Running script: $scriptPath $args"
+          & $scriptPath $args
+
+      # Step 2: Extract toolkit zip files
+      - name: Extract files
+        shell: pwsh
+        run: |
+          $archivePath = "${{ github.workspace }}\azuretoolkit\*.zip"
+          $destination = "${{ github.workspace }}\blob"
+          Write-Host "Extracting $archivePath to $destination"
+          New-Item -ItemType Directory -Force -Path $destination | Out-Null
+          Get-ChildItem $archivePath | ForEach-Object {
+            Expand-Archive -Path $_.FullName -DestinationPath $destination -Force
+          }
+      # Download Sitecore License File    
+      - name: Download Sitecore License File
+        shell: pwsh
+        run: |
+          $downloadPath = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\"
+          $storageAcc   = Get-AzStorageAccount -ResourceGroupName $env:STORAGE_RG -Name $env:STORAGE_ACCOUNT_NAME
+          $ctx          = $storageAcc.Context
+          $containers   = Get-AzStorageContainer -Name $env:STORAGE_CONTAINER -Context $ctx
+          $licenseFile  = $env:LICENSE_BLOB_NAME
+
+          foreach($container in $containers) {
+            Write-Host "CONTAINER: " $container.Name
+            $blobContents = Get-AzStorageBlob -Container $env:STORAGE_CONTAINER -Context $ctx
+
+            foreach($blobContent in $blobContents) {
+              if ($blobContent.Name -eq $licenseFile) {
+                Write-Host "BLOB CONTENT: " $blobContent.Name
+                if (Test-Path -Path $downloadPath) {
+                  Get-AzStorageBlobContent -Container $env:STORAGE_CONTAINER -Context $ctx -Blob $blobContent.Name -Destination $downloadPath -Force
+                }
+                if (Test-Path -Path ($downloadPath + $licenseFile)) {
+                  Write-Host "License file downloaded: $downloadPath$licenseFile"
+                }
+              }
+            }
+          } 
+
+      - name: Download Certificate from KeyVault
+        shell: pwsh
+        run: |
+          $vaultName   = "$env:KEYVAULT_NAME"
+          $secretName  = "$env:CERT_PASSWORD_SECRET"
+
+          # Get certificate password from Key Vault secret
+          $secret      = Get-AzKeyVaultSecret -VaultName $vaultName -Name $secretName
+          $bstr        = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
+          $plaintext   = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+          $certPassword = $plaintext
+
+          # Get certificate from Key Vault
+          $cert        = Get-AzKeyVaultCertificate -VaultName $vaultName -Name $env:CERT_NAME
+          $secret      = Get-AzKeyVaultSecret -VaultName $vaultName -Name $cert.Name
+
+          $secretValueText = ''
+          $ssPtr           = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret.SecretValue)
+          try {
+              $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
+          } finally {
+              [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
+          }
+
+          # Convert secret to certificate
+          $secretByte   = [Convert]::FromBase64String($secretValueText)
+          $x509Cert     = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($secretByte, "", "Exportable,PersistKeySet")
+          $type         = [System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx
+          $pfxFileByte  = $x509Cert.Export($type, $certPassword)
+
+          # Write to file
+          $exportPath = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\ExportedCert.pfx"
+          New-Item -ItemType Directory -Force -Path (Split-Path $exportPath) | Out-Null
+          [System.IO.File]::WriteAllBytes($exportPath, $pfxFileByte)
+
+          Write-Host "Certificate exported to: $exportPath"
       # … keep the rest of your steps (Generate SAS, Run PowerShell Script, Extract files, Download License, Download Certificate)
