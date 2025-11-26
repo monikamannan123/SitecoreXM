@@ -15,6 +15,16 @@ jobs:
   upload:
     runs-on: windows-latest
     env:
+      buildArtifactRootDirectory: 'Sitecore10.4.1-XMScaled-CI'
+      dropFolderName: 'drop'
+      sclicenseblobname: 'license.xml'
+      sqlServerLogin: 'sqladminlogin'
+      solrURL: 'https://localhost:8983/solr'
+      #PaaSLocation: ${{ secrets.PAAS_LOCATION }}
+      #DeploymentID: ${{ secrets.DEPLOYMENT_ID }}
+      #Sitecore_RG: ${{ secrets.SITECORE_RG }}
+     # storageaccount_uri: ${{ secrets.STORAGEACCOUNT_URI }}
+      storageaccount_token: ${{ secrets.STORAGEACCOUNT_TOKEN }}
       BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
       DROP_FOLDER: drop
       LICENSE_BLOB_NAME: license.xml
@@ -24,7 +34,8 @@ jobs:
       KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
       CERT_PASSWORD_SECRET: certPassword123
       CERT_NAME: gitcert101
-    
+      AZURE_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -212,4 +223,73 @@ jobs:
           [System.IO.File]::WriteAllBytes($exportPath, $pfxFileByte)
 
           Write-Host "Certificate exported to: $exportPath"
+          
+      - name: Install Sitecore1041PaaS
+        shell: pwsh
+        run: |
+          # ---------------------------
+          # VARIABLES
+          # ---------------------------
+          $DeploymentID     = $env:DeploymentID
+          $dropFolderPath   = Join-Path $env:GITHUB_WORKSPACE "$env:buildArtifactRootDirectory\$env:dropFolderName"
+          $LicenseFile      = Join-Path $dropFolderPath $env:sclicenseblobname
+          $Location         = $env:PaaSLocation
+          $sqlServerLogin   = $env:sqlServerLogin
+          $ExportedCert     = Join-Path $dropFolderPath "ExportedCert.pfx"
+          $ParamFile        = Join-Path $dropFolderPath "azuredeploy.parameters.json"
+
+          Get-Content -Path $ParamFile
+
+          # ---------------------------
+          # TEMPLATE URLS
+          # ---------------------------
+          $TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
+          $TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:storageaccount_uri)
+          $TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
+
+          # ---------------------------
+          # PACKAGE URLS
+          # ---------------------------
+          $solrConnectionString    = $env:solrURL
+          $siMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.IdentityServer.8.0.16.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
+          $cdMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
+          $cmMsDeployPackageUrl    = ("{0}xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?{1}" -f $env:storageaccount_uri, $env:storageaccount_token)
+
+          Write-Host "Location: $Location"
+          Write-Host "ParamFile: $ParamFile"
+          Write-Host "TemplateUrl: $TemplateUrl"
+          Write-Host "TemplateLinkBase: $TemplateLinkBase"
+          Write-Host "TemplateLinkAccessToken: $TemplateLinkAccessToken"
+          Write-Host "Storage URI: $env:storageaccount_uri"
+
+          # ---------------------------
+          # PARAMETER OVERRIDES
+          # ---------------------------
+          $Parameters = @{
+              "location"                   = $Location
+              "deploymentId"               = $DeploymentID
+              "templateLinkBase"           = $TemplateLinkBase
+              "templateLinkAccessToken"    = $TemplateLinkAccessToken
+              "solrConnectionString"       = $solrConnectionString
+              "sqlServerLogin"             = $sqlServerLogin
+              "siMsDeployPackageUrl"       = $siMsDeployPackageUrl
+              "applicationInsightsLocation"= $Location
+              "cdMsDeployPackageUrl"       = $cdMsDeployPackageUrl
+              "cmMsDeployPackageUrl"       = $cmMsDeployPackageUrl
+              "authCertificateBlob"        = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($ExportedCert))
+          }
+
+          # ---------------------------
+          # START DEPLOYMENT
+          # ---------------------------
+          Import-Module "$env:GITHUB_WORKSPACE\blob\tools\Sitecore.Cloud.Cmdlets.psm1" -Verbose
+
+          Start-SitecoreAzureDeployment `
+              -Location $Location `
+              -Name $env:Sitecore_RG `
+              -ArmTemplateUrl $TemplateUrl `
+              -ArmParametersPath $ParamFile `
+              -LicenseXmlPath $LicenseFile `
+              -SetKeyValue $Parameters `
+              -Verbose
       # … keep the rest of your steps (Generate SAS, Run PowerShell Script, Extract files, Download License, Download Certificate)
