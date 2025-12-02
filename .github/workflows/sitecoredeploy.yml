@@ -28,8 +28,10 @@ jobs:
       DROP_FOLDER: drop
       LICENSE_BLOB_NAME: license.xml
       STORAGE_RG: ${{ secrets.RESOURCEGROUP_NAME }}
-      STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-      STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
+      #STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+      STORAGE_ACCOUNT_NAME: storageacctxmgithub
+      #STORAGE_CONTAINER: ${{ secrets.STORAGE_CONTAINER }}
+      STORAGE_CONTAINER: containergithub
       KEYVAULT_NAME: ${{ secrets.KEYVAULT_NAME }}
       CERT_PASSWORD_SECRET: certPassword123
       CERT_NAME: gitcert101
@@ -45,12 +47,12 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Set storage account URL in env
         run: |
-          echo "STORAGE_ACCOUNT_URI=https://$STORAGE_ACCOUNT_NAME.blob.core.windows.net/$STORAGE_CONTAINER" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_URI=https://storageacctxmgithub.blob.core.windows.net/containergithub" >> $GITHUB_ENV
 
 
       - name: Show URL
         run: |
-          echo "Storage URL: $STORAGE_ACCOUNT_URI"
+          echo "Storage URL: $env:STORAGE_ACCOUNT_URI"
       - name: Connect Az PowerShell
         shell: pwsh
         run: |
