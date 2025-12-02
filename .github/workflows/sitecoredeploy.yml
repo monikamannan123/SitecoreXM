@@ -23,7 +23,7 @@ jobs:
       PaaSLocation: eastus2
       DeploymentID: dpsitecore1041
       Sitecore_RG: ${{ secrets.RESOURCEGROUP_NAME }}
-      storageaccount_token: ${{ secrets.STORAGEACCOUNT_TOKEN }}
+      storageaccount_token: ${{ secrets.STORAGE_ACCOUNT_KEY }}
       BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
       DROP_FOLDER: drop
       LICENSE_BLOB_NAME: license.xml
