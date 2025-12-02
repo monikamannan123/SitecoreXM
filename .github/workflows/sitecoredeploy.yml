@@ -99,7 +99,8 @@ jobs:
             --expiry $expiry `
             --https-only `
             -o tsv
-          echo "sasToken=$sas" >> $env:GITHUB_OUTPUT
+          #echo "sasToken=$sas" >> $env:GITHUB_OUTPUT
+          echo "storageaccount_token=$sas" >> $env:GITHUB_ENV
           $blobUri = "https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}"
           echo "blobUri=$blobUri" >> $env:GITHUB_OUTPUT
 
