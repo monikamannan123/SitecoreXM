@@ -23,7 +23,7 @@ jobs:
       PaaSLocation: eastus2
       DeploymentID: dpsitecore1041
       Sitecore_RG: ${{ secrets.RESOURCEGROUP_NAME }}
-      storageaccount_token: ${{ secrets.STORAGE_ACCOUNT_KEY }}
+      #storageaccount_token: ${{ secrets.STORAGE_ACCOUNT_KEY }}
       BUILD_ARTIFACT_ROOT: Sitecore10.4.1-XMScaled-CI
       DROP_FOLDER: drop
       LICENSE_BLOB_NAME: license.xml
@@ -107,14 +107,20 @@ jobs:
       - name: Generate SAS Token for container
         shell: bash
         run: |
-           expiry=$(date -u -d "+10 hours" '+%Y-%m-%dT%H:%M:%SZ')
+           # Set start time (15 minutes ago) and expiry (8 hours from now)
+           start=$(date -u -d "-15 minutes" '+%Y-%m-%dT%H:%M:%SZ')
+           expiry=$(date -u -d "+8 hours" '+%Y-%m-%dT%H:%M:%SZ')
+       
+           # Generate SAS token for the container with explicit version
            sas=$(az storage container generate-sas \
              --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
              --name ${{ secrets.STORAGE_CONTAINER }} \
              --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} \
-             --permissions rwlac \
-             --expiry $expiry \
+             --permissions rlacwd \
              --https-only \
+             --start $start \
+             --expiry $expiry \
+             --asv 2022-11-02 \
              -o tsv)
        
            echo "storageaccount_token=$sas" >> $GITHUB_ENV
