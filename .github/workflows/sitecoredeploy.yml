@@ -252,6 +252,9 @@ jobs:
           # ---------------------------
           # TEMPLATE URLS
           # ---------------------------
+          if (-not $env:STORAGE_ACCOUNT_URI -or -not $env:storageaccount_token) {
+            throw "Required environment variables are missing!"
+           }
           #$TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
           #$TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:STORAGE_ACCOUNT_URI)
           #$TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
