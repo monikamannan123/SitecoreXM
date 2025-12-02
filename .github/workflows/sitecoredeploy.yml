@@ -88,23 +88,38 @@ jobs:
             --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
             --destination-path "xmscaled/arm"
        # Generate SAS token and Blob URI
-      - name: Generate SAS Token
-        id: sas
+      - name: Generate SAS Token for container
+        shell: bash
         run: |
-          $expiry = (Get-Date).AddHours(10).ToString("yyyy-MM-ddTHH:mm:ssZ")
-          $sas = az storage account generate-sas `
-            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
-            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
-            --services b `
-            --resource-types sco `
-            --permissions rwlac `
-            --expiry $expiry `
-            --https-only `
-            -o tsv
-          #echo "sasToken=$sas" >> $env:GITHUB_OUTPUT
-          echo "sastoken=$sas" >> $env:GITHUB_ENV
-          $blobUri = "https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}"
-          echo "blobUri=$blobUri" >> $env:GITHUB_OUTPUT
+           expiry=$(date -u -d "+10 hours" '+%Y-%m-%dT%H:%M:%SZ')
+           sas=$(az storage container generate-sas \
+             --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+             --name ${{ secrets.STORAGE_CONTAINER }} \
+             --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} \
+             --permissions rwlac \
+             --expiry $expiry \
+             --https-only \
+             -o tsv)
+       
+           #echo "storageaccount_token=$sas" >> $GITHUB_ENV
+           #echo "STORAGE_ACCOUNT_URI=https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}" >> $GITHUB_ENV
+
+      - name: Generate SAS Token for container
+        shell: bash
+        run: |
+           expiry=$(date -u -d "+10 hours" '+%Y-%m-%dT%H:%M:%SZ')
+           sas=$(az storage container generate-sas \
+             --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+             --name ${{ secrets.STORAGE_CONTAINER }} \
+             --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} \
+             --permissions rwlac \
+             --expiry $expiry \
+             --https-only \
+             -o tsv)
+       
+           echo "storageaccount_token=$sas" >> $GITHUB_ENV
+           echo "STORAGE_ACCOUNT_URI=https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}" >> $GITHUB_ENV
+
 
       # Example usage of SAS token in later steps
       - name: Show SAS Outputs
@@ -255,9 +270,8 @@ jobs:
           # ---------------------------
           # TEMPLATE URLS
           # ---------------------------
-          if (-not $env:STORAGE_ACCOUNT_URI -or -not $env:storageaccount_token) {
-            throw "Required environment variables are missing!"
-           }
+          echo $env:STORAGE_ACCOUNT_URI
+          
           #$TemplateUrl             = ("{0}xmscaled/arm/azuredeploy.json?{1}" -f $env:STORAGE_ACCOUNT_URI, $env:storageaccount_token)
           #$TemplateLinkBase        = ("{0}xmscaled/arm/" -f $env:STORAGE_ACCOUNT_URI)
           #$TemplateLinkAccessToken = ("?{0}" -f $env:storageaccount_token)
