@@ -39,6 +39,10 @@ jobs:
           $target = Join-Path $Env:ARTIFACT_DIR 'Scripts'
           if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
           Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
+      - name: Verify files
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ github.workspace }}\drop\arm" -Recurse
 
       - name: Copy Pre deploy scripts
         shell: pwsh
