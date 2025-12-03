@@ -229,7 +229,7 @@ jobs:
              exit 1
            }
        
-           $ParamFile         = Join-Path $dropFolderPath "azuredeploy.parameters.json"
+           $ParamFile         = Join-Path $env:GITHUB_WORKSPACE "drop\azuredeploy.parameters.json"
        
            if (-not (Test-Path $LicenseFile)) {
              Write-Error "Sitecore license file not found at $LicenseFile"
