@@ -27,10 +27,22 @@ jobs:
           New-Item -ItemType Directory -Path $artifact | Out-Null
           echo "ARTIFACT_DIR=$artifact" >> $Env:GITHUB_ENV
 
+      #- name: Copy XPScaled ARM Templates
+       # shell: pwsh
+       # run: |
+          #Copy-Item -Path (Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila/*') -Destination $Env:ARTIFACT_DIR -Recurse -Force
+
       - name: Copy XPScaled ARM Templates
         shell: pwsh
         run: |
-          Copy-Item -Path (Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila/*') -Destination $Env:ARTIFACT_DIR -Recurse -Force
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila\arm'
+          $destination = Join-Path $Env:ARTIFACT_DIR 'arm'
+          if (-not (Test-Path $source)) {
+              Write-Error "ARM template source folder not found: $source"
+              exit 1
+          }
+          Copy-Item -Path "$source\*" -Destination $destination -Recurse -Force
+          Write-Host "ARM templates copied to $destination"
 
       - name: Copy PS Scripts
         shell: pwsh
