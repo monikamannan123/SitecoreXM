@@ -263,9 +263,10 @@ jobs:
            # PACKAGE URLS
            # ---------------------------
            $solrConnectionString    = $env:solrURL
-           $siMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zipp?$SasToken"
-           $cdMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore 10.4.1 rev. 012149 (XM) (Cloud)_cm.scwdp.zip?$SasToken"
-           $cmMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore 10.4.1 rev. 012149 (XM) (Cloud)_cd.scwdp.zip?$SasToken"
+           $siMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zip?$SasToken"
+           $cmMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore 10.4.1 rev. 012149 (XM) (Cloud)_cm.scwdp.zip?$SasToken"
+           $cdMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore 10.4.1 rev. 012149 (XM) (Cloud)_cd.scwdp.zip?$SasToken"
+
 
 
            #$siMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zip?$SasToken"
