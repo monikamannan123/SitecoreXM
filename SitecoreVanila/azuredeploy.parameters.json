@@ -30,7 +30,7 @@
       "value": ""
     },
     "authCertificatePassword": {
-      "value": ""
+      "value": "certPassword123"
     }
   }
 }
