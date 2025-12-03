@@ -203,7 +203,12 @@ jobs:
           [System.IO.File]::WriteAllBytes($exportPath, $pfxFileByte)
 
           Write-Host "Certificate exported to: $exportPath"
-          
+          - name: Show drop folder tree
+            shell: pwsh
+            run: |
+              Get-ChildItem "$env:GITHUB_WORKSPACE\drop" -Recurse | 
+                Sort-Object FullName | 
+                ForEach-Object { $_.FullName }     
       - name: Install Sitecore1041PaaS
         shell: pwsh
         run: |
