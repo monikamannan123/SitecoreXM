@@ -270,10 +270,14 @@ jobs:
            # PACKAGE URLS
            # ---------------------------
            $solrConnectionString    = $env:solrURL
-       
-           $siMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zip?$SasToken"
-           $cdMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?$SasToken"
-           $cmMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?$SasToken"
+           $siMsDeployPackageUrl = "$StorageBase/xmscaled/arm/Sitecore.IdentityServer.8.0.28.scwdp.zip?$SasToken"
+           $cdMsDeployPackageUrl = "$StorageBase/xmscaled/arm/Sitecore.XM10.4.1.cd.scwdp.zip?$SasToken"
+           $cmMsDeployPackageUrl = "$StorageBase/xmscaled/arm/Sitecore.XM10.4.1.cm.scwdp.zip?$SasToken"
+
+
+           #$siMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.IdentityServer.8.0.28.scwdp.zip?$SasToken"
+           #$cdMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.XM10.4.1.cd.scwdp.zip?$SasToken"
+           #$cmMsDeployPackageUrl = "$StorageBase/xmscaled/Sitecore.XM10.4.1.cm.scwdp.zip?$SasToken"
        
            Write-Host "siMsDeployPackageUrl: $siMsDeployPackageUrl"
            Write-Host "cmMsDeployPackageUrl: $cmMsDeployPackageUrl"
