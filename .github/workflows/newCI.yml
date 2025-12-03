@@ -44,7 +44,14 @@ jobs:
           $target = Join-Path $Env:ARTIFACT_DIR 'PreDeployment'
           if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
           Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
-
+      - name: Copy Sitecore WDP packages
+        shell: pwsh
+        run: |
+          $source = Join-Path $Env:GITHUB_WORKSPACE 'SitecorePackages'
+          $target = $Env:ARTIFACT_DIR
+          Copy-Item -Path "$source\*.scwdp.zip" -Destination $target -Force
+    
+      
       - name: Upload artifact:drop
         uses: actions/upload-artifact@v4
         with:
