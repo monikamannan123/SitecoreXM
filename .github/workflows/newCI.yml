@@ -44,12 +44,15 @@ jobs:
           $target = Join-Path $Env:ARTIFACT_DIR 'PreDeployment'
           if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
           Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
-      - name: Copy Sitecore WDP packages
-        shell: pwsh
+      - name: Upload ARM templates only
         run: |
-          $source = Join-Path $Env:GITHUB_WORKSPACE 'SitecorePackages'
-          $target = $Env:ARTIFACT_DIR
-          Copy-Item -Path "$source\*.scwdp.zip" -Destination $target -Force
+         az storage blob upload-batch `
+           --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
+           --destination ${{ secrets.STORAGE_CONTAINER }}/xmscaled/arm `
+           --source "${{ github.workspace }}\drop\arm" `
+           --auth-mode key `
+           --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }}
+
     
       
       - name: Upload artifact:drop
