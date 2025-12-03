@@ -219,9 +219,7 @@ jobs:
            # ---------------------------
            $DeploymentID      = $env:DeploymentID
            $dropFolderPath    = Join-Path $env:GITHUB_WORKSPACE "Sitecore10.4.1-XMScaled-CI\drop"
-           $filelist          = Get-ChildItem -Path $dropFolderPath
-           Write-Host $filelist
-           $LicenseFile       = Join-Path $dropFolderPath "Scripts\*.xml"
+           $LicenseFile       = Join-Path $env:GITHUB_WORKSPACE "drop\Scripts\license.xml"
            $Location          = $env:PaaSLocation
            $sqlServerLogin    = $env:sqlServerLogin
            
