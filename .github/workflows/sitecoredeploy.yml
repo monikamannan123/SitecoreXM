@@ -104,8 +104,7 @@ jobs:
              --permissions rlacwd \
              --https-only \
              --start $start \
-             --expiry $expiry \
-              -o tsv)
+             --expiry $expiry -o tsv)
        
            echo "storageaccount_token=$sas" >> $GITHUB_ENV
            echo "STORAGE_ACCOUNT_URI=https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}" >> $GITHUB_ENV
