@@ -74,16 +74,15 @@ jobs:
         with:
           name: drop
           path: ${{ github.workspace }}/drop
-
+      
       - name: Upload Sitecore packages to Blob
         run: |
-          az storage blob upload-batch `
-            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} `
-            --destination ${{ secrets.STORAGE_CONTAINER }} `
-            --source "${{ github.workspace }}\drop" `
-            --auth-mode key `
-            --account-key ${{ secrets.STORAGE_ACCOUNT_KEY }} `
-            --destination-path "xmscaled/arm"
+           az storage blob upload-batch `
+           --account-name $env:STORAGE_ACCOUNT_NAME `
+           --account-key $env:STORAGE_ACCOUNT_KEY `
+           --destination containergithub/xmscaled `
+           --source "$env:GITHUB_WORKSPACE\drop"
+
        # Generate SAS token and Blob URI
       
       - name: Generate SAS Token for container
