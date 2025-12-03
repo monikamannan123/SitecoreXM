@@ -66,12 +66,7 @@ jobs:
       
           Connect-AzAccount -ServicePrincipal -Tenant $tenantId -Credential $cred
           Set-AzContext -Subscription $subscription
-      - name: Install Az PowerShell modules
-        shell: pwsh
-        run: |
-          Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
-          Import-Module Az
-
+      
       - name: Download artifact:drop
         uses: actions/download-artifact@v4
         with:
