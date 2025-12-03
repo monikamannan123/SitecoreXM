@@ -10,6 +10,9 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+      STORAGE_ACCOUNT_KEY: ${{ secrets.STORAGE_ACCOUNT_KEY }}
     outputs:
       artifact-name: drop   # expose artifact name to caller
     steps:
