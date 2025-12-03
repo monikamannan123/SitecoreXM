@@ -12,7 +12,9 @@ jobs:
   build:
     uses: ./.github/workflows/newCI.yml   # call reusable workflow
     
+    
   upload:
+    needs: [build]
     runs-on: windows-latest
     env:
       buildArtifactRootDirectory: 'Sitecore10.4.1-XMScaled-CI'
