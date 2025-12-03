@@ -166,33 +166,7 @@ jobs:
           Get-ChildItem $archivePath | ForEach-Object {
             Expand-Archive -Path $_.FullName -DestinationPath $destination -Force
           }
-      # Download Sitecore License File    
-      - name: Download Sitecore License File
-        shell: pwsh
-        run: |
-          $downloadPath = "${{ github.workspace }}\$env:BUILD_ARTIFACT_ROOT\$env:DROP_FOLDER\"
-          $storageAcc   = Get-AzStorageAccount -ResourceGroupName $env:STORAGE_RG -Name $env:STORAGE_ACCOUNT_NAME
-          $ctx          = $storageAcc.Context
-          $containers   = Get-AzStorageContainer -Name $env:STORAGE_CONTAINER -Context $ctx
-          $licenseFile  = $env:LICENSE_BLOB_NAME
-
-          foreach($container in $containers) {
-            Write-Host "CONTAINER: " $container.Name
-            $blobContents = Get-AzStorageBlob -Container $env:STORAGE_CONTAINER -Context $ctx
-
-            foreach($blobContent in $blobContents) {
-              if ($blobContent.Name -eq $licenseFile) {
-                Write-Host "BLOB CONTENT: " $blobContent.Name
-                if (Test-Path -Path $downloadPath) {
-                  Get-AzStorageBlobContent -Container $env:STORAGE_CONTAINER -Context $ctx -Blob $blobContent.Name -Destination $downloadPath -Force
-                }
-                if (Test-Path -Path ($downloadPath + $licenseFile)) {
-                  Write-Host "License file downloaded: $downloadPath$licenseFile"
-                }
-              }
-            }
-          } 
-
+      
       - name: Download Certificate from KeyVault
         shell: pwsh
         run: |
@@ -238,7 +212,7 @@ jobs:
            # ---------------------------
            $DeploymentID      = $env:DeploymentID
            $dropFolderPath    = Join-Path $env:GITHUB_WORKSPACE "Sitecore10.4.1-XMScaled-CI\drop"
-           $LicenseFile       = Join-Path $dropFolderPath "license.xml"
+           $LicenseFile       = Join-Path $dropFolderPath "Scripts\*.xml"
            $Location          = $env:PaaSLocation
            $sqlServerLogin    = $env:sqlServerLogin
            
