@@ -75,13 +75,7 @@ jobs:
           name: drop
           path: ${{ github.workspace }}/drop
       
-      - name: Upload Sitecore packages to Blob
-        run: |
-           az storage blob upload-batch `
-           --account-name $env:STORAGE_ACCOUNT_NAME `
-           --account-key $env:STORAGE_ACCOUNT_KEY `
-           --destination containergithub/xmscaled `
-           --source "$env:GITHUB_WORKSPACE\drop"
+     
 
        # Generate SAS token and Blob URI
       
@@ -105,6 +99,29 @@ jobs:
            echo "storageaccount_token=$sas" >> $GITHUB_ENV
            echo "STORAGE_ACCOUNT_URI=https://${{ secrets.STORAGE_ACCOUNT_NAME }}.blob.core.windows.net/${{ secrets.STORAGE_CONTAINER }}" >> $GITHUB_ENV
 
+      - name: Upload Sitecore packages to Blob using SAS token
+        shell: pwsh
+        run: |
+           $sourcePath = "$env:GITHUB_WORKSPACE\drop\arm"
+           $destinationContainer = "containergithub"
+           $destinationPath = "xmscaled/arm"
+       
+           if (-not $env:storageaccount_token) {
+               Write-Error "SAS token not set! Aborting upload."
+               exit 1
+           }
+       
+           # Ensure STORAGE_ACCOUNT_URI does not end with slash
+           $storageBaseUri = $env:STORAGE_ACCOUNT_URI.TrimEnd('/')
+       
+           Write-Host "Uploading blobs from '$sourcePath' to '$storageBaseUri/$destinationPath' using SAS token"
+       
+           az storage blob upload-batch `
+             --destination $destinationContainer `
+             --source $sourcePath `
+             --destination-path $destinationPath `
+             --account-name $env:STORAGE_ACCOUNT_NAME `
+             --sas-token $env:storageaccount_token
 
       # Example usage of SAS token in later steps
       - name: Show SAS Outputs
