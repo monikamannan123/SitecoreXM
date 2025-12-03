@@ -10,9 +10,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-      STORAGE_ACCOUNT_KEY: ${{ secrets.STORAGE_ACCOUNT_KEY }}
+    
     outputs:
       artifact-name: drop   # expose artifact name to caller
     steps:
@@ -30,9 +28,7 @@ jobs:
       - name: Copy XPScaled ARM Templates
         shell: pwsh
         run: |
-          #Copy-Item -Path (Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila/*') -Destination $Env:ARTIFACT_DIR -Recurse -Force
-
-     
+          Copy-Item -Path (Join-Path $Env:GITHUB_WORKSPACE 'SitecoreVanila/*') -Destination $Env:ARTIFACT_DIR -Recurse -Force
 
       - name: Copy PS Scripts
         shell: pwsh
@@ -41,7 +37,6 @@ jobs:
           $target = Join-Path $Env:ARTIFACT_DIR 'Scripts'
           if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
           Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
-      
 
       - name: Copy Pre deploy scripts
         shell: pwsh
@@ -50,7 +45,7 @@ jobs:
           $target = Join-Path $Env:ARTIFACT_DIR 'PreDeployment'
           if (-not (Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
           Copy-Item -Path (Join-Path $source '*') -Destination $target -Recurse -Force
-      
+
       - name: Upload artifact:drop
         uses: actions/upload-artifact@v4
         with:
